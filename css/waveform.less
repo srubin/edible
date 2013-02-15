@@ -1,0 +1,86 @@
+/* settings */
+
+@trackHeight: 90px;
+@topBarHeight: 15px;
+@handleWidth: 3px;
+@trackBorder: 1px;
+
+/* waveform */
+
+.edible-waveform {
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    height: @trackHeight;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.topBar {
+    background-color: #666666;
+    height: @topBarHeight;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.displayCanvas {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+/*    position: absolute;*/
+    left: 0px;
+}
+
+.resizable-helper {
+    border: 1px dashed black;
+}
+
+.wfCanvContainer {
+/*    font-size: 0pt;
+    position: absolute;*/
+}
+
+/*.adjustmentHandle {
+    display: inline-block;
+    background-color: orange;
+    height: @trackHeight - @topBarHeight;
+    width: @handleWidth;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    cursor: col-resize;
+}
+
+.leftHandle {
+    .adjustmentHandle;
+    left: 0px;
+}
+
+.rightHandle {
+    .adjustmentHandle;
+    right: 0px;
+}*/
+
+/* timeline */
+
+.edible-timeline {
+    position: relative;
+}
+
+.track {
+    padding: 0;
+    margin: 5px 0;
+    width: 100%;
+    height: @trackHeight;
+    background-color: rgb(225, 225, 225);
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.track-drop-hover {
+    background-color: #ffefc4;
+}
