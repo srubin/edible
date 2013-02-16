@@ -12,6 +12,10 @@
 <body>
     
     <div id="timeline"></div>
+    
+    <div id="debug" style="position:absolute; bottom: 10px">
+        
+    </div>
         
     <script src="http://code.jquery.com/jquery-1.9.0.js"></script>
     <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
@@ -23,7 +27,7 @@
     
 <!-- Templates for waveform.js -->
 <script type="text/template" id="waveformTemplate">
-<div class="topBar"></div>
+<div class="topBar"><%= name %></div>
 <div class="wfCanvContainer">
     <canvas class="displayCanvas"></canvas>
     <div class="leftHandle"></div>

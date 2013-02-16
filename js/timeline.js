@@ -8,6 +8,7 @@
  * Author: Steve Rubin
  */
 
+
 (function ($, window, document, undefined) {
     "use strict";
     $.widget("edible.timeline", {
@@ -15,15 +16,7 @@
             width: "1200px",
             tracks: 4,
             wf: [],
-            pxPerMs: .01
-        },
-        
-        msToPx: function (ms) {
-            return ms * this.options.pxPerMs;
-        },
-        
-        pxToMs: function (px) {
-            return px / this.options.pxPerMs;
+            pxPerMs: .05
         },
         
         _create: function () {
@@ -46,54 +39,74 @@
                             $kid.appendTo($dad);
                             $kid.css('top', 0);
                         }
-                        // update start for the dropped waveform
+                        // update pos for the dropped waveform
                         $.each(that.options.wf, function (i, wf) {
                             if (wf.elt === $kid[0]) {
-                                wf.start = that.pxToMs($kid.position().left);
+                                wf.pos = that.pxToMs($kid.position().left);
                                 return;
                             }
                         });
                     },
                     hoverClass: "track-drop-hover"
             });
-            console.log("wf iter");
-            $.each(this.options.wf, function (i, wf) {
-                that.element.find(".track:eq(" + wf.track + ")")
-                    .append(wf.elt);
-                $(wf.elt).css("left", that.msToPx(wf.start))
-                    .draggable({
-                        containment: ".edible-timeline"
-                    });
-            })
             
             this._refresh();
         },
         
         _refresh: function () {
+            console.log("timeline _refresh");
             var that = this;
-            $.each(this.options.wf, function (i ,wf) {
-                $(wf.elt).waveform("option", "pxPerMs", that.options.pxPerMs);
+            $.each(this.options.wf, function (i, wf) {
+                that.element.find(".track:eq(" + wf.track + ")")
+                    .append(wf.elt);
+                $(wf.elt).css("left", that.msToPx(wf.pos))
+                    .draggable({
+                        containment: ".edible-timeline"
+                }).waveform({
+                    pxPerMs: that.options.pxPerMs,
+                    changed: function () {
+                        wf.pos = that.pxToMs($(this).position().left);
+                    }
+                });
             });
             this.element.width(this.options.width);
         },
-        
+
         _destroy: function () {
             
         },
-        
+
         addWaveform: function (waveform, track, time) {
             this.options.wf.push(waveform);
             this._refresh();
         },
-        
-        
-        
+
+        msToPx: function (ms) {
+            return ms * this.options.pxPerMs;
+        },
+
+        pxToMs: function (px) {
+            return px / this.options.pxPerMs;
+        },
+
+        export: function () {
+            var that = this;
+            return $.map(this.options.wf, function (wf) {
+                return {
+                    name: $(wf.elt).waveform("option", "name"),
+                    scoreStart: wf.pos / 1000.0,
+                    wfStart: $(wf.elt).waveform("option", "start") / 1000.0,
+                    duration: $(wf.elt).waveform("option", "len") / 1000.0
+                };
+            });
+        },
+
         _setOptions: function () {
             // _super and _superApply handle keeping the right this-context
             this._superApply(arguments);
             this._refresh();
         },
-        
+
         _setOption: function (key, value) {
             console.log("in _setOption with key:", key, "value:", value);
             switch (key) {
@@ -105,6 +118,7 @@
             }
             
             this._super("_setOption", key, value);
+            this._refresh();
         }
         
     });
