@@ -33,6 +33,18 @@ $(function () {
             { elt: w2, track: 1, pos: 1000 }]
     });    
     
-
+    $.getJSON('audio/json/bullw44.wav.json', function (data) {
+        console.log("here");
+        $(".wfjstest").css("position", "absolute").css("top", "500px");
+        var wftest = new Waveform({
+            container: $(".wfjstest")[0],
+            data: data.mid,
+            interpolate: true,
+            innerColor: "#000000",
+            outerColor: "#cccccc",
+            width: 1200,
+            height: 75
+        });
+    });
 
 });

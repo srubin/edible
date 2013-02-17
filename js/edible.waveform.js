@@ -8,11 +8,15 @@
  */
  
  
+ // uses waveform.js from waveformjs.org
+ // ...maybe
+ 
 (function ($, window, document, undefined) {
     "use strict";
     $.widget("edible.waveform", {
         options: {
             bgColor: "blue",
+            img: undefined,
             height: "90px",
             canvHeight: "75px",
             topBarHeight: "15px",
@@ -32,14 +36,35 @@
             return JSON.stringify(this.options, null, 4);
         },
         
+        slice: function (event) {
+            // create a copy of this waveform
+            var offset = this.element.offset(); 
+            var relX = event.pageX - offset.left;
+            var newWaveform = document.createElement('div');
+            var $nwf = $(newWaveform).waveform(
+                $.extend({}, this.options, {
+                    start: this.options.start + relX / this.options.pxPerMs,
+                    len: this.options.len - relX / this.options.pxPerMs
+                })
+            );
+            console.log("new len", this.options.len - relX / this.options.pxPerMs);
+            console.log("new start", this.options.start + relX / this.options.pxPerMs);
+            this._setOption("len", relX / this.options.pxPerMs);
+            return {
+                waveform: newWaveform,
+                pos: relX / this.options.pxPerMs
+            };
+        },
+        
         // private 
         _create: function () {
             var that = this;
             var wfTemplate = $("#waveformTemplate").html();
             var $canv;
             var $topBar;
-            this.element.addClass('edible-waveform');
-            this.element.append(_.template(wfTemplate, this.options));
+            this.element.addClass('edible-waveform')
+                .append(_.template(wfTemplate, this.options));
+
             $canv = this.element.find('.displayCanvas');
             $topBar = this.element.find('.topBar');
             
@@ -60,7 +85,8 @@
                     var startLeft = ui.originalPosition.left -
                         that.options.start * that.options.pxPerMs;
 
-                    var maxWidth = that.options.dur * that.options.pxPerMs;
+                    var maxWidth = (that.options.dur - that.options.start) *
+                        that.options.pxPerMs;
                     var start = that.options.start;
                     var len = ui.size.width / that.options.pxPerMs;
                     var left = ui.position.left;
@@ -79,7 +105,7 @@
                         // right handle
                         // handle pulled past hypothetical end
                         if (ui.size.width > maxWidth) {
-                            len = that.options.dur;
+                            len = that.options.dur - that.options.start;
                         }
                     }
 
@@ -96,6 +122,19 @@
             }).disableSelection().css("position", "absolute");
             
             this._refresh();
+        },
+        
+        /*
+         _drawWaveform will update the displayCanvas with the current waveform
+         */
+        _drawWaveform: function () {
+            var canv = this.element.find('.displayCanvas')[0];
+            var ctx = canv.getContext('2d');
+            var wfImg = new Image();
+            wfImg.onload = function () {
+                
+            };
+            wfImg.src = this.options.img;
         },
         
         _refresh: function () {
@@ -131,6 +170,7 @@
             }
             
             this._super("_setOption", key, value);
+            this._refresh();
             this._trigger("changed", null, this.debugInfo());
         }
         

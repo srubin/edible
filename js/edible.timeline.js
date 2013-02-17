@@ -67,6 +67,13 @@
                     changed: function () {
                         wf.pos = that.pxToMs($(this).position().left);
                     }
+                }).click(function (event) {
+                    var res = $(this).waveform("slice", event);
+                    that.addWaveform({
+                        elt: res.waveform,
+                        track: wf.track,
+                        pos: wf.pos + res.pos
+                    });
                 });
             });
             this.element.width(this.options.width);
