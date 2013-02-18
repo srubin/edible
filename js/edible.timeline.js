@@ -43,6 +43,12 @@
                         $.each(that.options.wf, function (i, wf) {
                             if (wf.elt === $kid[0]) {
                                 wf.pos = that.pxToMs($kid.position().left);
+                                $.each(that.element.find('.track'), function (i, track) {
+                                    if ($dad[0] === track) {
+                                        wf.track = i;
+                                        return false;
+                                    }
+                                });
                                 return;
                             }
                         });
@@ -57,6 +63,7 @@
             console.log("timeline _refresh");
             var that = this;
             $.each(this.options.wf, function (i, wf) {
+                
                 that.element.find(".track:eq(" + wf.track + ")")
                     .append(wf.elt);
                 $(wf.elt).css("left", that.msToPx(wf.pos))
@@ -65,15 +72,19 @@
                 }).waveform({
                     pxPerMs: that.options.pxPerMs,
                     changed: function () {
-                        wf.pos = that.pxToMs($(this).position().left);
+                        wf.pos = that.pxToMs($(wf.elt).position().left);
                     }
-                }).click(function (event) {
+                }).unbind('click.edibletimeline')
+                .bind('click.edibletimeline', function (event) {
                     var res = $(this).waveform("slice", event);
+                    console.log("POS OF NEW WF", wf.pos + res.pos);
+                    console.log("POS OF OLD WF", wf.pos);
                     that.addWaveform({
                         elt: res.waveform,
                         track: wf.track,
                         pos: wf.pos + res.pos
                     });
+                    console.log("POS OF OLD WF", wf.pos);
                 });
             });
             this.element.width(this.options.width);

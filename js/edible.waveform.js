@@ -10,13 +10,12 @@
  
  // uses waveform.js from waveformjs.org
  // ...maybe
- 
+
 (function ($, window, document, undefined) {
     "use strict";
     $.widget("edible.waveform", {
         options: {
-            bgColor: "blue",
-            img: undefined,
+            data: [],
             height: "90px",
             canvHeight: "75px",
             topBarHeight: "15px",
@@ -29,7 +28,7 @@
         
         // public
         width: function () {
-            return this.options.len * this.options.pxPerMs;
+            return parseInt(this.options.len * this.options.pxPerMs);
         },
         
         debugInfo: function () {
@@ -41,15 +40,19 @@
             var offset = this.element.offset(); 
             var relX = event.pageX - offset.left;
             var newWaveform = document.createElement('div');
+            var msOfClick = relX / this.options.pxPerMs;
+
+            // initialize the new waveform
             var $nwf = $(newWaveform).waveform(
-                $.extend({}, this.options, {
-                    start: this.options.start + relX / this.options.pxPerMs,
-                    len: this.options.len - relX / this.options.pxPerMs
-                })
-            );
-            console.log("new len", this.options.len - relX / this.options.pxPerMs);
-            console.log("new start", this.options.start + relX / this.options.pxPerMs);
-            this._setOption("len", relX / this.options.pxPerMs);
+                $.extend(true, {},
+                    this.options, {
+                        start: this.options.start + msOfClick,
+                        len: this.options.len - msOfClick
+                    }
+            ));
+            this._setOptions({
+                len: relX / this.options.pxPerMs
+            });
             return {
                 waveform: newWaveform,
                 pos: relX / this.options.pxPerMs
@@ -112,6 +115,7 @@
                     console.log("orig element offset", ui.originalElement.offset());
                     that.element.css("left",
                         left - that.element.parent().offset().left);
+                    console.log("setting new len", len, "and start", start);
                     that._setOptions({
                         len: len,
                         start: start
@@ -128,25 +132,37 @@
          _drawWaveform will update the displayCanvas with the current waveform
          */
         _drawWaveform: function () {
+            var nsamples = this.options.data.length;
+            var sampPerMs = nsamples / this.options.dur;
+            var startSample = this.options.start * sampPerMs;
+            var endSample = startSample + this.options.len * sampPerMs;
+            
             var canv = this.element.find('.displayCanvas')[0];
-            var ctx = canv.getContext('2d');
-            var wfImg = new Image();
-            wfImg.onload = function () {
-                
-            };
-            wfImg.src = this.options.img;
+            var gradient =canv.getContext('2d')
+                .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight));
+            gradient.addColorStop(0.0, "#4BF2A7" );
+            gradient.addColorStop(1.0, "#32CD32" );
+            var wf = new Waveform({
+                canvas: canv,
+                data: this.options.data.slice(startSample, endSample),
+                innerColor: gradient,
+                outerColor: "#333",
+                height: this.options.canvHeight,
+                interpolate: true,
+                width: this.width()
+            });
         },
         
         _refresh: function () {
-            console.log("_refresh-ing");
+            // console.log("_refresh-ing");
             this.element.find(".displayCanvas")
-                .css("background-color", this.options.bgColor)
                 .attr("width", this.width())
                 .attr("height", this.options.canvHeight);
             this.element.find(".topBar")
                 .css("width", this.width());
             this.element.width(this.width())
                 .height(this.options.height);
+            this._drawWaveform();
         },
         
         _destroy: function () {
@@ -157,6 +173,7 @@
             // _super and _superApply handle keeping the right this-context
             this._superApply(arguments);
             this._refresh();
+            this._trigger("changed", null, this.debugInfo());
         },
         
         _setOption: function (key, value) {
@@ -170,8 +187,6 @@
             }
             
             this._super("_setOption", key, value);
-            this._refresh();
-            this._trigger("changed", null, this.debugInfo());
         }
         
     });
