@@ -13,7 +13,7 @@
 
 (function ($, window, document, undefined) {
     "use strict";
-    $.widget("edible.waveform", {
+    $.widget("edible.waveform", $.edible.wfBase, {
         options: {
             data: [],
             height: "90px",
@@ -61,6 +61,9 @@
         
         // private 
         _create: function () {
+            // for polymorphism!
+            this._super("_create");
+
             var that = this;
             var wfTemplate = $("#waveformTemplate").html();
             var $canv;
@@ -138,10 +141,14 @@
             var endSample = startSample + this.options.len * sampPerMs;
             
             var canv = this.element.find('.displayCanvas')[0];
-            var gradient =canv.getContext('2d')
-                .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight));
-            gradient.addColorStop(0.0, "#4BF2A7" );
-            gradient.addColorStop(1.0, "#32CD32" );
+            var gradient = "#4BF2A7";
+            if (canv !== undefined) {
+                gradient = canv.getContext('2d')
+                    .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight));
+                gradient.addColorStop(0.0, "#4BF2A7" );
+                gradient.addColorStop(1.0, "#32CD32" );
+            }
+
             var wf = new Waveform({
                 canvas: canv,
                 data: this.options.data.slice(startSample, endSample),
@@ -166,7 +173,7 @@
         },
         
         _destroy: function () {
-            
+            this._super("destroy");
         },
         
         _setOptions: function () {

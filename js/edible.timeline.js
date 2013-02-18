@@ -28,6 +28,7 @@
             for (i = 0; i < this.options.tracks; i++) {
                 this.element.append(_.template(trackTemplate));
             }
+            this.element.css("height", this.options.tracks * 95 + "px");
             this.element.find(".track").each(function (index) {
                 $(this).css("top", 95 * index + "px");
             }).droppable({
@@ -69,14 +70,14 @@
                 $(wf.elt).css("left", that.msToPx(wf.pos))
                     .draggable({
                         containment: ".edible-timeline"
-                }).waveform({
+                }).wf({
                     pxPerMs: that.options.pxPerMs,
                     changed: function () {
                         wf.pos = that.pxToMs($(wf.elt).position().left);
                     }
                 }).unbind('click.edibletimeline')
                 .bind('click.edibletimeline', function (event) {
-                    var res = $(this).waveform("slice", event);
+                    var res = $(this).wf("slice", event);
                     console.log("POS OF NEW WF", wf.pos + res.pos);
                     console.log("POS OF OLD WF", wf.pos);
                     that.addWaveform({
@@ -91,7 +92,10 @@
         },
 
         _destroy: function () {
-            
+            $.each(this.options.wf, function (i, wf) {
+                $(wf.elt).unbind('.edibletimeline').wf("destroy");
+            })
+            this.element.removeClass("edible-timeline").html("");
         },
 
         addWaveform: function (waveform, track, time) {
@@ -111,10 +115,10 @@
             var that = this;
             return $.map(this.options.wf, function (wf) {
                 return {
-                    name: $(wf.elt).waveform("option", "name"),
+                    name: $(wf.elt).wf("option", "name"),
                     scoreStart: wf.pos / 1000.0,
-                    wfStart: $(wf.elt).waveform("option", "start") / 1000.0,
-                    duration: $(wf.elt).waveform("option", "len") / 1000.0
+                    wfStart: $(wf.elt).wf("option", "start") / 1000.0,
+                    duration: $(wf.elt).wf("option", "len") / 1000.0
                 };
             });
         },
