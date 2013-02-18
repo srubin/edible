@@ -9,9 +9,12 @@
             this._super("_create");
         },
         
+        waveformClass: function () {
+            return "textAlignedWaveform";
+        },
+        
         // draws the waveform according to the current text
         _drawWaveform: function () {
-            console.log("in tAW drawWaveform", this.options.currentWords);
             var that = this;
             var i, start, end, delta, tmpSamples, tsi;
             var hasData = (this.options.data.length > 0);
@@ -31,9 +34,9 @@
                     // just some zeros for padding
                     tmpSamples = [];
                     for (tsi = 0; tsi < word.pauseLength * 1000.0 * sampPerMs; tsi++) {
-                        tmpSamples[i] = 0;
+                        tmpSamples[tsi] = 0;
                     }
-                    
+
                     // add them to the samples array
                     currentSamples.push.apply(currentSamples, tmpSamples);
                 } else {
@@ -55,8 +58,6 @@
             // set the length of the waveform
             this.options.len = currentDuration;
             
-            console.log("current duration", currentDuration, "width", this.width());
-            
             // draw the waveform
             var canv = this.element.find('.displayCanvas')[0];
             
@@ -75,16 +76,6 @@
             if (!hasData) {
                 currentSamples = [];
             }
-            
-            console.log({
-                canvas: canv,
-                data: currentSamples,
-                innerColor: gradient,
-                outerColor: "#333",
-                height: this.options.canvHeight,
-                interpolate: true,
-                width: this.width()
-            });
             
             var wf = new Waveform({
                 canvas: canv,

@@ -23,12 +23,17 @@
             len: 1000,       // milliseconds, visible length from start
             start: 0,        // milliseconds
             pxPerMs: .1,
-            name: "audio"
+            name: "audio",
+            filename: "audio.mp3"
         },
         
         // public
         width: function () {
             return parseInt(this.options.len * this.options.pxPerMs);
+        },
+        
+        waveformClass: function () {
+            return "waveform";
         },
         
         debugInfo: function () {
@@ -184,7 +189,7 @@
         },
         
         _setOption: function (key, value) {
-            console.log("in _setOption with key:", key, "value:", value);
+            // console.log("in _setOption with key:", key, "value:", value);
             switch (key) {
             case "oogielove":
                 break;

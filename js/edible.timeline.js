@@ -16,7 +16,9 @@
             width: "1200px",
             tracks: 4,
             wf: [],
-            pxPerMs: .05
+            pxPerMs: .05,
+            sound: undefined,
+            position: 0.0
         },
         
         _create: function () {
@@ -55,13 +57,29 @@
                         });
                     },
                     hoverClass: "track-drop-hover"
+            }).bind("click.edibletimeline", function (event) {
+                var offset = that.element.offset(); 
+                var relX = event.pageX - offset.left;
+                var msOfClick = relX / that.options.pxPerMs;
+                that._setOptions({
+                    position: msOfClick
+                });
+                if (that.options.sound !== undefined) {
+                    that.options.sound.setPosition(msOfClick);
+                } 
             });
+            
+            var playhead = document.createElement('div');
+            $(playhead).addClass("playhead")
+                .css("height", this.options.tracks * 95 + "px")
+                .appendTo(this.element);
+            
             
             this._refresh();
         },
         
         _refresh: function () {
-            console.log("timeline _refresh");
+            // console.log("timeline _refresh");
             var that = this;
             $.each(this.options.wf, function (i, wf) {
                 
@@ -89,6 +107,11 @@
                 });
             });
             this.element.width(this.options.width);
+            
+            // draw the time indicator
+            var currentPosition;
+            currentPosition = this.options.position * this.options.pxPerMs;
+            this.element.find('.playhead').css("left", currentPosition + "px");
         },
 
         _destroy: function () {
@@ -98,7 +121,7 @@
             this.element.removeClass("edible-timeline").html("");
         },
 
-        addWaveform: function (waveform, track, time) {
+        addWaveform: function (waveform) {
             this.options.wf.push(waveform);
             this._refresh();
         },
@@ -115,6 +138,8 @@
             var that = this;
             return $.map(this.options.wf, function (wf) {
                 return {
+                    waveformClass: $(wf.elt).wf("waveformClass"),
+                    filename: $(wf.elt).wf("option", "filename"),
                     name: $(wf.elt).wf("option", "name"),
                     scoreStart: wf.pos / 1000.0,
                     wfStart: $(wf.elt).wf("option", "start") / 1000.0,
@@ -130,7 +155,7 @@
         },
 
         _setOption: function (key, value) {
-            console.log("in _setOption with key:", key, "value:", value);
+            // console.log("in _setOption with key:", key, "value:", value);
             switch (key) {
             case "oogielove":
                 break;

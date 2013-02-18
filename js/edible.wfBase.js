@@ -4,6 +4,7 @@
     $.widget("edible.wfBase", {
         _create: function () {
             // support widget polymorphism
+            console.log("REGISTERING AS NAME", this.widgetName)
             this.element.data('waveformClass', this.widgetName);
         },
         _destroy: function () {
