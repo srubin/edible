@@ -4,7 +4,7 @@
  
 (function ($, window, document, undefined) {
     "use strict";
-    $.widget("edible.songWaveform", $.edible.waveform, {
+    $.widget("edible.musicWaveform", $.edible.waveform, {
         _create: function () {
             this._super("_create");
         },
@@ -15,8 +15,8 @@
                 
         _drawWaveform: function () {
             this._super("_drawWaveform");
-            if (this.options.hasOwnProperty("musicGraph") {
-                alert("Music Graph, yo!");
+            if (this.options.hasOwnProperty("musicGraph")) {
+                alert("Music Graph!");
             }
         },
         
