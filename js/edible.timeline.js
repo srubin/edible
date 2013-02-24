@@ -90,8 +90,17 @@
                         containment: ".edible-timeline"
                 }).wf({
                     pxPerMs: that.options.pxPerMs,
-                    changed: function () {
-                        wf.pos = that.pxToMs($(wf.elt).position().left);
+                    changed: function (event, args) {
+                        // only invoke this function if we didn't just add the
+                        // changed callback
+                        if (args[0].changed === undefined) {
+                            console.log("CHANGING POS FROM", wf.pos, 
+                                "TO", that.pxToMs($(wf.elt).position().left));
+                            // TODO: figure out why this was here in 
+                            // the first place. Maybe it was 
+                            // because of stretching tracks?
+                            wf.pos = that.pxToMs($(wf.elt).position().left);
+                        }                        
                     }
                 }).unbind('click.edibletimeline')
                 .bind('click.edibletimeline', function (event) {
@@ -129,16 +138,17 @@
         },
 
         msToPx: function (ms) {
-            return ms * this.options.pxPerMs;
+            return parseFloat(ms) * this.options.pxPerMs;
         },
 
         pxToMs: function (px) {
-            return px / this.options.pxPerMs;
+            return parseFloat(px) / this.options.pxPerMs;
         },
 
         export: function () {
             var that = this;
             return $.map(this.options.wf, function (wf) {
+                console.log("SCORE START", wf.pos / 1000.0, "WF POS", wf.pos);
                 return {
                     waveformClass: $(wf.elt).wf("waveformClass"),
                     extra: $(wf.elt).wf("exportExtras"),
@@ -160,8 +170,10 @@
         _setOption: function (key, value) {
             // console.log("in _setOption with key:", key, "value:", value);
             switch (key) {
-            case "oogielove":
-                break;
+            case "pxPerMs":
+                this.options._dirtyWaveforms = this.options.wf.slice(0);
+                this.options[key] = value;   
+                break; 
             default:
                 this.options[key] = value;
                 break;

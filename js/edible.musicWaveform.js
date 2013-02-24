@@ -16,7 +16,56 @@
                 this.options.beatOrder = this.options.currentBeats.slice(0);
                 console.log(this.options.currentBeats);
             }
+            
+            // the super...
             this._super("_create");
+            
+            // change the resizing
+            // var stopCallback = $.Callbacks();
+            var oldStop = this.element.resizable("option", "stop");
+            var that = this;
+            this.element.resizable({
+                stop: function (event, ui) {
+                    var oldLen = that.options.len;
+                    var oldStart = that.options.start;
+                    var newLen, newStart;
+                    oldStop(event, ui);
+                    newLen = that.options.len;
+                    newStart = that.options.start;
+                    that._updateCurrentBeats(oldLen, oldStart, newLen, newStart);
+                    that._refresh();
+                } 
+            })
+        },
+        
+        _updateCurrentBeats: function (ol, os, nl, ns) {
+            var ds, dl, newBeat, t;
+            var firstBeat = this.options.currentBeats[0];
+            var idx = this.options.beatOrder.indexOf(firstBeat);
+            if (ns > os) {
+                ds = ns - os;
+                newBeat = this._msToBeat(ds);
+                console.log("old BEATS", this.options.currentBeats);
+                this.options.currentBeats = this.options.currentBeats.slice(newBeat);
+                console.log("new BEATS", this.options.currentBeats);
+                return;
+            }
+            if (ns < os) {
+                // unclear how exactly this should behave
+                ds = os - ns;
+                t = parseFloat(firstBeat) * 1000.0 - ds
+                if (t >= 0) {
+                    console.log("old BEATS", this.options.currentBeats);
+                    while (parseFloat(this.options.currentBeats[0]) * 1000.0 >
+                        t && idx >= 0) {
+                        this.options.currentBeats.unshift(this.options.beatOrder[--idx]);
+                    }
+                    console.log("new BEATS", this.options.currentBeats);
+                    return;
+                } else {
+                    throw "RESIZED TOO FAR! CLEAN UP THE MUSIC RESIZE CODE, STEVE";
+                }
+            }
         },
         
         waveformClass: function () {
@@ -57,7 +106,8 @@
         
         exportExtras: function () {
             return {
-                beats: this.options.currentBeats
+                starts: this.options._exportStarts,
+                durations: this.options._exportDurations
             };
         },
         
@@ -123,7 +173,7 @@
             }
             
             var that = this;
-            var i, start, end, delta, tmpSamples, tsi, closest;
+            var i, start, end, delta, tmpSamples, tsi, closest, deltaSec;
             var hasData = (this.options.data.length > 0);
             
             // get sample info
@@ -137,18 +187,23 @@
             console.log("CURRENT BEATS LEN", currentBeats.length, currentBeats);
 
             // get the duration of the beats
-            var currentDuration = 0;
+            var currentDuration = 0.0;
             
             this.options._timeToBeat = {};
             this.options._beatToTime = [];
+            this.options._exportStarts = [];
+            this.options._exportDurations = [];
 
             // if the first beat is the starting beat, render the beginning
             if (currentBeats[0] === this.options.beatOrder[0]) {
                 that.options._timeToBeat[currentDuration] = 0;
+                that.options._exportStarts.push(0);
+                that.options._exportDurations.push(parseFloat(currentBeats[0]));
                 
                 console.log("Using the intro", currentBeats[0]);
                 end = parseFloat(currentBeats[0]) * 1000.0;
-                currentDuration += parseInt(end);
+                currentDuration += end;
+                // currentDuration += parseInt(end);
                 
                 if (hasData) {
                     endSample = parseInt(end * sampPerMs);
@@ -159,48 +214,60 @@
         
             $.each(currentBeats, function (j, beat) {
                 if (j === currentBeats.length - 1 &&
-                    beat === that.options.beatOrder[that.options.beatOrder.length]) {
+                    beat === that.options.beatOrder[that.options.beatOrder.length - 1]) {
                         
                     // if the final beat is the ultimate beat, render the ending
                     
                     start = parseFloat(beat) * 1000.0;
-                    end = that.options.dur;
+                    end = parseFloat(that.options.dur);
                     delta = end - start;
+                    deltaSec = parseFloat(that.options.dur) / 1000.0 - parseFloat(beat);
                 } else if (j === currentBeats.length - 1) {
                     
                     // if the final beat is not the ultimate beat
-                    
+                    console.log("hanging final beat", "len", that.options.len);
                     start = parseFloat(beat) * 1000.0;
-                    if (that._nextBeatHidden !== undefined) {
-                        delta = graph.succ[beat][that._nextBeatHidden].duration * 1000.0;
-                    } else {
-                        delta = null;
-                        closest = null;
-                        $.each(graph.succ[beat], function (b, data) {
-                            if (closest == null ||
-                                Math.abs(parseFloat(b) - parseFloat(beat)) <
-                                    Math.abs(closest - parseFloat(beat))) {
-                                closest = parseFloat(b);
-                                delta = data.duration * 1000.0;    
-                            }
-                        });
-                    }
-                    end = start + delta;
+                    end = parseFloat(that.options.start) + parseFloat(that.options.len);
+                    console.log("start", start, "end", end);
+                    delta = end - start;
+                    deltaSec = end / 1000.0 - parseFloat(beat);
+                    // if (that._nextBeatHidden !== undefined) {
+                    //     deltaSec = graph.succ[beat][that._nextBeatHidden].duration;
+                    //     delta = deltaSec * 1000.0;
+                    // } else {
+                    //     delta = null;
+                    //     closest = null;
+                    //     $.each(graph.succ[beat], function (b, data) {
+                    //         if (closest == null ||
+                    //             Math.abs(parseFloat(b) - parseFloat(beat)) <
+                    //                 Math.abs(closest - parseFloat(beat))) {
+                    //             closest = parseFloat(b);
+                    //             deltaSec = data.duration;
+                    //             delta = deltaSec * 1000.0;    
+                    //         }
+                    //     });
+                    // }
+                    // end = start + delta;
                 } else {
                     
                     // normal beats
                     // (where the next beat is also in the currentBeats)
                     
                     start = parseFloat(beat) * 1000.0;
-                    delta = graph.succ[beat][currentBeats[j + 1]].duration * 1000.0;
+                    deltaSec = graph.succ[beat][currentBeats[j + 1]].duration
+                    delta = deltaSec * 1000.0;
                     end = start + delta;
                 }
                 
                 
                 that.options._timeToBeat[currentDuration] = j;
                 that.options._beatToTime[j] = currentDuration;
+                
+                that.options._exportStarts.push(parseFloat(beat));
+                that.options._exportDurations.push(deltaSec);
                     
-                currentDuration += parseInt(delta);
+                currentDuration += delta;
+                // currentDuration += parseInt(delta);
                     
                 // get the waveform samples for the beat
                 if (hasData) {

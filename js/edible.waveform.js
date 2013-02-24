@@ -19,9 +19,9 @@
             height: "90px",
             canvHeight: "75px",
             topBarHeight: "15px",
-            dur: 1000,       // millseconds, doesn't change
-            len: 1000,       // milliseconds, visible length from start
-            start: 0,        // milliseconds
+            dur: 1000.0,       // millseconds, doesn't change
+            len: 1000.0,       // milliseconds, visible length from start
+            start: 0.0,        // milliseconds
             pxPerMs: .1,
             name: "audio",
             filename: "audio.mp3"
@@ -29,7 +29,7 @@
         
         // public
         width: function () {
-            return parseInt(this.options.len * this.options.pxPerMs);
+            return this.options.len * this.options.pxPerMs;
         },
         
         waveformClass: function () {
@@ -37,7 +37,7 @@
         },
         
         exportExtras: function () {
-            return undefined;
+            return {};
         },
         
         debugInfo: function () {
@@ -190,7 +190,8 @@
             // _super and _superApply handle keeping the right this-context
             this._superApply(arguments);
             this._refresh();
-            this._trigger("changed", null, this.debugInfo());
+            console.log("triggering changed");
+            this._trigger("changed", null, arguments);
         },
         
         _setOption: function (key, value) {
