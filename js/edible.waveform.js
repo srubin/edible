@@ -36,6 +36,10 @@
             return "waveform";
         },
         
+        exportExtras: function () {
+            return undefined;
+        },
+        
         debugInfo: function () {
             return JSON.stringify(this.options, null, 4);
         },
@@ -48,13 +52,14 @@
             var msOfClick = relX / this.options.pxPerMs;
 
             // initialize the new waveform
-            var $nwf = $(newWaveform).waveform(
+            var $nwf = $(newWaveform)[this.waveformClass()](
                 $.extend(true, {},
                     this.options, {
                         start: this.options.start + msOfClick,
                         len: this.options.len - msOfClick
-                    }
-            ));
+                    })
+                );
+
             this._setOptions({
                 len: relX / this.options.pxPerMs
             });

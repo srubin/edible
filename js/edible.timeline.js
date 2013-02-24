@@ -16,6 +16,7 @@
             width: "1200px",
             tracks: 4,
             wf: [],
+            _dirtyWaveforms: [],
             pxPerMs: .05,
             sound: undefined,
             position: 0.0
@@ -74,15 +75,14 @@
                 .css("height", this.options.tracks * 95 + "px")
                 .appendTo(this.element);
             
-            
+            this.options._dirtyWaveforms = this.options.wf.slice(0);
             this._refresh();
         },
         
         _refresh: function () {
             // console.log("timeline _refresh");
             var that = this;
-            $.each(this.options.wf, function (i, wf) {
-                
+            $.each(this.options._dirtyWaveforms, function (i, wf) {
                 that.element.find(".track:eq(" + wf.track + ")")
                     .append(wf.elt);
                 $(wf.elt).css("left", that.msToPx(wf.pos))
@@ -106,6 +106,7 @@
                     console.log("POS OF OLD WF", wf.pos);
                 });
             });
+            this.options._dirtyWaveforms = [];
             this.element.width(this.options.width);
             
             // draw the time indicator
@@ -123,6 +124,7 @@
 
         addWaveform: function (waveform) {
             this.options.wf.push(waveform);
+            this.options._dirtyWaveforms.push(waveform);
             this._refresh();
         },
 
@@ -139,6 +141,7 @@
             return $.map(this.options.wf, function (wf) {
                 return {
                     waveformClass: $(wf.elt).wf("waveformClass"),
+                    extra: $(wf.elt).wf("exportExtras"),
                     filename: $(wf.elt).wf("option", "filename"),
                     name: $(wf.elt).wf("option", "name"),
                     scoreStart: wf.pos / 1000.0,
