@@ -1,5 +1,5 @@
 // this is to support polymorphism with different types of waveforms
-(function ($, window, document, undefined) {
+;(function ($, window, document, undefined) {
     "use strict";
     $.widget("edible.wfBase", {
         _create: function () {

@@ -20,7 +20,7 @@
  *  jquery.ui.draggable.js
  */
 
-$.ui.plugin.add("draggable", "snap2", {
+;$.ui.plugin.add("draggable", "snap2", {
     start: function() {
 
         var i = $(this).data("ui-draggable"),

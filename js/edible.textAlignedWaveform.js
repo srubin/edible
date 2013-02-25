@@ -2,7 +2,7 @@
  * part of the edible timeline editor
  */
  
-(function ($, window, document, undefined) {
+;(function ($, window, document, undefined) {
     "use strict";
     $.widget("edible.textAlignedWaveform", $.edible.waveform, {
         _create: function () {

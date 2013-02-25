@@ -11,7 +11,7 @@
  // uses waveform.js from waveformjs.org
  // ...maybe
 
-(function ($, window, document, undefined) {
+;(function ($, window, document, undefined) {
     "use strict";
     $.widget("edible.waveform", $.edible.wfBase, {
         options: {
@@ -70,6 +70,47 @@
         },
         
         // private 
+        _computePosFromResize: function (event, ui) {
+            console.log("ui", ui);
+            var leftDiff = ui.position.left - ui.originalPosition.left;
+            // hypothetical position of start of waveform
+            var startLeft = ui.originalPosition.left -
+                this.options.start * this.options.pxPerMs;
+
+            var maxWidth = (this.options.dur - this.options.start) *
+                this.options.pxPerMs;
+            var start = this.options.start;
+            var len = ui.size.width / this.options.pxPerMs;
+            var left = ui.position.left;
+                    
+            if (leftDiff !== 0) {
+                // left handle
+                start = this.options.start +
+                    leftDiff / this.options.pxPerMs;
+                // handle pulled past hypothetical start
+                if (start < 0) {
+                    start = 0;
+                    left = startLeft;
+                    len = this.options.len + this.options.start;
+                }
+            } else {
+                // right handle
+                // handle pulled past hypothetical end
+                if (ui.size.width > maxWidth) {
+                    len = this.options.dur - this.options.start;
+                }
+            }
+
+            console.log("orig element offset", ui.originalElement.offset());
+            this.element.css("left",
+                left - this.element.parent().offset().left);
+    
+            return {
+                len: len,
+                start: start
+            }
+        },
+        
         _create: function () {
             // for polymorphism!
             this._super("_create");
@@ -95,45 +136,10 @@
             }).resizable({
                 handles: "e, w",
                 stop: function (event, ui) {
-                    console.log("ui", ui);
-                    var leftDiff = ui.position.left - ui.originalPosition.left;
-                    // hypothetical position of start of waveform
-                    var startLeft = ui.originalPosition.left -
-                        that.options.start * that.options.pxPerMs;
-
-                    var maxWidth = (that.options.dur - that.options.start) *
-                        that.options.pxPerMs;
-                    var start = that.options.start;
-                    var len = ui.size.width / that.options.pxPerMs;
-                    var left = ui.position.left;
-                    
-                    if (leftDiff !== 0) {
-                        // left handle
-                        start = that.options.start +
-                            leftDiff / that.options.pxPerMs;
-                        // handle pulled past hypothetical start
-                        if (start < 0) {
-                            start = 0;
-                            left = startLeft;
-                            len = that.options.len + that.options.start;
-                        }
-                    } else {
-                        // right handle
-                        // handle pulled past hypothetical end
-                        if (ui.size.width > maxWidth) {
-                            len = that.options.dur - that.options.start;
-                        }
-                    }
-
-                    console.log("orig element offset", ui.originalElement.offset());
-                    that.element.css("left",
-                        left - that.element.parent().offset().left);
-                    console.log("setting new len", len, "and start", start);
-                    that._setOptions({
-                        len: len,
-                        start: start
-                    });
-                    
+                    var newOpts = that._computePosFromResize(event, ui);
+                    console.log("setting new len", newOpts.len,
+                        "and start", newOpts.start);
+                    that._setOptions(newOpts);                    
                 },
                 helper: "resizable-helper"
             }).disableSelection().css("position", "absolute");

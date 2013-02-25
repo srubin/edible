@@ -1,4 +1,4 @@
-(function() {
+;(function() {
   var JSONP, Waveform,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 

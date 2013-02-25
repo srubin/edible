@@ -1,7 +1,7 @@
 /*jslint browser: true vars: true */
 /*global $*/
 
-$(function () {
+;$(function () {
     "use strict";
     var w1 = document.createElement('div');
     var w2 = document.createElement('div');
