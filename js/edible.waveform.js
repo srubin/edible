@@ -125,6 +125,14 @@
             $canv = this.element.find('.displayCanvas');
             $topBar = this.element.find('.topBar');
             
+            this.element.find('.removeWaveform')
+                .click(function (event) {
+                    that._trigger("destroy");
+                    that._destroy();
+                    event.preventDefault();
+                    return false;
+                });
+            
             // TODO: don't hardcode the snap tolerance
             this.element.draggable({
                 handle: $topBar,
@@ -190,6 +198,7 @@
         
         _destroy: function () {
             this._super("destroy");
+            this.element.remove();
         },
         
         _setOptions: function () {

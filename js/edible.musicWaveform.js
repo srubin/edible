@@ -153,6 +153,41 @@
             }
         },
         
+        _linearCycles: function () {
+            var currentBeats = this.options.currentBeats;
+            var subgraph = this.options._graph.subgraph(currentBeats);
+            var beatOrder = this.options._beatOrder;
+            var beatSet = this.options._beatSet;
+            var i, j;
+            var startBeat, endBeat;
+            var cycles = [];
+            var cyc;
+            
+            for (i = 0; i < beatOrder.length; i++) {
+                startBeat = beatOrder[i];
+                if (startBeat in beatSet) {
+                    for (j = i + 1; j < beatOrder.length; j++) {
+                        endBeat = beatOrder[j];
+                        if (endBeat in beatSet) {
+                            if (startBeat in subgraph.succ[endBeat]) {
+                                // there's a jump backwards from
+                                // endBeat to startBeat
+                                cyc = beatOrder.slice(i, j + 1);
+                                cyc.push(startBeat);
+                                cycles.push(cyc);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            cycles.sort(function (a, b) {
+                return a.length - b.length;
+            });
+            
+            return cycles;
+        },
+        
         findLoops: function () {
             if (!this.options.hasOwnProperty("musicGraph")) {
                 return [];
@@ -161,7 +196,7 @@
             this.element.find('.loopControlLeft').remove();
             this.element.find('.loopControlRight').remove();
             
-            if (Object.keys(this.options._beatSet).length > 40) {
+            if (Object.keys(this.options._beatSet).length > 80) {
                 return;
             }
                         
@@ -170,10 +205,12 @@
             var loopL, loopR;
             var that = this;
 
-            var subgraph = graph.subgraph(this.options.currentBeats);
+            // var subgraph = graph.subgraph(this.options.currentBeats);
+            // 
+            // var cycles = jsnx.simple_cycles(subgraph);
             
-            var cycles = jsnx.simple_cycles(subgraph);
-
+            var cycles = this._linearCycles();
+            
             console.log("cycles", cycles);
             if (cycles.length > 0) {
                 that.options._simpleCycles = cycles;

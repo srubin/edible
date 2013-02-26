@@ -100,7 +100,17 @@
                             // the first place. Maybe it was 
                             // because of stretching tracks?
                             wf.pos = that.pxToMs($(wf.elt).position().left);
-                        }                        
+                        }                     
+                    },
+                    destroy: function () {
+                        var i;
+                        for (i = 0; i < that.options.wf.length; i++) {
+                            if (that.options.wf[i] === wf) {
+                                that.options.wf.splice(i, 1);
+                                that._refresh();
+                                break;
+                            }
+                        }
                     }
                 }).unbind('click.edibletimeline')
                 .bind('click.edibletimeline', function (event) {
