@@ -32,9 +32,7 @@
             return this.options.len * this.options.pxPerMs;
         },
         
-        waveformClass: function () {
-            return "waveform";
-        },
+        waveformClass: function () { return "waveform" },
         
         exportExtras: function () {
             return {};
@@ -52,7 +50,7 @@
             var msOfClick = relX / this.options.pxPerMs;
 
             // initialize the new waveform
-            var $nwf = $(newWaveform)[this.waveformClass()](
+            var $nwf = $(newWaveform)[this.waveformClass](
                 $.extend(true, {},
                     this.options, {
                         start: this.options.start + msOfClick,
@@ -152,6 +150,8 @@
                 helper: "resizable-helper"
             }).disableSelection().css("position", "absolute");
             
+            this.options._mcanv = new EDIBLE.modules.MultiCanvas($canv[0]);
+            
             this._refresh();
         },
         
@@ -164,7 +164,9 @@
             var startSample = this.options.start * sampPerMs;
             var endSample = startSample + this.options.len * sampPerMs;
             
-            var canv = this.element.find('.displayCanvas')[0];
+            // var canv = this.element.find('.displayCanvas')[0];
+            var canv = this.options._mcanv;
+            
             var gradient = "#4BF2A7";
             if (canv !== undefined) {
                 gradient = canv.getContext('2d')
@@ -186,9 +188,13 @@
         
         _refresh: function () {
             // console.log("_refresh-ing");
-            this.element.find(".displayCanvas")
-                .attr("width", this.width())
-                .attr("height", this.options.canvHeight);
+            this.options._mcanv.width = this.width();
+            this.options._mcanv.height = parseInt(this.options.canvHeight);
+            
+            // this.element.find(".displayCanvas")
+            //     .attr("width", this.width())
+            //     .attr("height", this.options.canvHeight);
+            
             this.element.find(".topBar")
                 .css("width", this.width());
             this.element.width(this.width())

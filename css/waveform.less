@@ -5,6 +5,11 @@
 @handleWidth: 3px;
 @trackBorder: 1px;
 
+@font-face {
+    font-family: "Silkscreen";
+    src: url(../fonts/slkscr.ttf) format("truetype");
+}
+
 /* waveform */
 
 .edible-waveform {
@@ -32,10 +37,10 @@
 
 .displayCanvas {
     display: inline-block;
-    margin: 0;
-    padding: 0;
+/*    margin: 0;
+    padding: 0;*/
 /*    position: absolute;*/
-    left: 0px;
+/*    left: 0px;*/
 }
 
 .resizable-helper {
@@ -96,12 +101,15 @@
 
 .edible-timeline {
     position: relative;
+    overflow-x: scroll;
+    overflow-y: hidden;
 }
 
 .track {
     padding: 0;
     margin: 5px 0;
-    width: 100%;
+/*    width: 100%;*/
+    width: 32000px;
     height: @trackHeight;
     background-color: rgb(225, 225, 225);
     position: absolute;

@@ -59,9 +59,10 @@
                     },
                     hoverClass: "track-drop-hover"
             }).bind("click.edibletimeline", function (event) {
-                var offset = that.element.offset(); 
+                var offset = that.element.offset();
                 var relX = event.pageX - offset.left;
-                var msOfClick = relX / that.options.pxPerMs;
+                var scrollLeft = that.element.scrollLeft();
+                var msOfClick = (relX + scrollLeft) / that.options.pxPerMs;
                 that._setOptions({
                     position: msOfClick
                 });
@@ -69,6 +70,9 @@
                     that.options.sound.setPosition(msOfClick);
                 } 
             });
+            
+            this.element.css("height",
+                this.element[0].scrollHeight + 20 + "px");
             
             var playhead = document.createElement('div');
             $(playhead).addClass("playhead")

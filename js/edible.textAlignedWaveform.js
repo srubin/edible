@@ -9,9 +9,7 @@
             this._super("_create");
         },
         
-        waveformClass: function () {
-            return "textAlignedWaveform";
-        },
+        waveformClass: function () { return "textAlignedWaveform" },
         
         // draws the waveform according to the current text
         _drawWaveform: function () {
@@ -26,9 +24,16 @@
             var endSample = startSample + this.options.len * sampPerMs;
             var currentSamples = [];
             
+            // keep track of the position of each word
+            var wordPositions = [];
+            
             // get the duration of the words
             var currentDuration = 0;
             $.each(this.options.currentWords, function (j, word) {
+                
+                // position used for rendering text on waveform
+                wordPositions.push(currentDuration);
+                
                 if (word.alignedWord === "gp") {
                     currentDuration += parseInt(word.pauseLength * 1000.0);
                     // just some zeros for padding
@@ -59,10 +64,21 @@
             this.options.len = currentDuration;
             
             // draw the waveform
-            var canv = this.element.find('.displayCanvas')[0];
+            // var canv = this.element.find('.displayCanvas')[0];
+            
+            // var canv = new EDIBLE.modules.MultiCanvas(this.element.find('.displayCanvas')[0]);
+            // console.log("CANVAS", canv);
+
+            var canv = this.options._mcanv;
+            console.log("CANVAS", canv, "ctx", canv.getContext('2d'))
+            
+
             
             // lame width update
-            $(canv).attr("width", this.width());
+            // $(canv).attr("width", this.width());
+            canv.getContext('2d').canvas.width = this.width();
+            canv.getContext('2d').canvas.height = parseInt(this.options.canvHeight);
+            
             this.element.find('.topBar').css("width", this.width());
             
             var gradient = "#4BF2A7";
@@ -73,6 +89,8 @@
                 gradient.addColorStop(1.0, "#32CD32" );
             }
             
+            console.log("GRADIENT", gradient)
+            
             if (!hasData) {
                 currentSamples = [];
             }
@@ -81,12 +99,37 @@
                 canvas: canv,
                 data: currentSamples,
                 innerColor: gradient,
-                outerColor: "#333",
+                outerColor: "#333333",
                 height: this.options.canvHeight,
                 interpolate: true,
                 width: this.width()
             });
-
+            
+            // render text on waveform
+            // don't do it for now... need to figure out problem
+            // with canvas width limitations
+            if (false) {
+                var ctx = canv.getContext('2d');
+                ctx.save();
+                ctx.font = "6pt Silkscreen";
+                ctx.fillStyle = "#fff";
+                ctx.textAlign = "center";
+                $.each(this.options.currentWords, function (j, word) {
+                    var xPos = wordPositions[j] * that.options.pxPerMs;
+                    var xNext;
+                    if (j + 1 < that.options.currentWords.length) {
+                        xNext = wordPositions[j + 1] * that.options.pxPerMs;
+                        ctx.fillText(word.word, xPos + (xNext - xPos) / 2,
+                            15, xNext - xPos);
+                    } else {
+                        ctx.textAlign = "left";
+                        ctx.fillText(word.word, xPos, 15);
+                    }
+                });
+                ctx.restore();
+            
+                console.log("canvas size", this.width());
+            }
         },
         
     });

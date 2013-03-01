@@ -90,9 +90,7 @@
             }
         },
         
-        waveformClass: function () {
-            return "musicWaveform";
-        },
+        waveformClass: function () { return "musicWaveform" },
         
         _updateBeatSet: function () {
             var i;
@@ -425,7 +423,8 @@
             this.options.len = currentDuration;
             
             // draw the waveform
-            var canv = this.element.find('.displayCanvas')[0];
+            // var canv = this.element.find('.displayCanvas')[0];
+            var canv = this.options._mcanv;
             
             // lame width update
             $(canv).attr("width", this.width());
