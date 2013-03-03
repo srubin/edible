@@ -194,7 +194,7 @@
             this.element.find('.loopControlLeft').remove();
             this.element.find('.loopControlRight').remove();
             
-            if (Object.keys(this.options._beatSet).length > 80) {
+            if (Object.keys(this.options._beatSet).length > 140) {
                 return;
             }
                         
@@ -202,10 +202,6 @@
             var graph = this.options._graph;
             var loopL, loopR;
             var that = this;
-
-            // var subgraph = graph.subgraph(this.options.currentBeats);
-            // 
-            // var cycles = jsnx.simple_cycles(subgraph);
             
             var cycles = this._linearCycles();
             
@@ -369,23 +365,6 @@
                     console.log("start", start, "end", end);
 
                     dist = 0;
-                    // if (that._nextBeatHidden !== undefined) {
-                    //     deltaSec = graph.succ[beat][that._nextBeatHidden].duration;
-                    //     delta = deltaSec * 1000.0;
-                    // } else {
-                    //     delta = null;
-                    //     closest = null;
-                    //     $.each(graph.succ[beat], function (b, data) {
-                    //         if (closest == null ||
-                    //             Math.abs(parseFloat(b) - parseFloat(beat)) <
-                    //                 Math.abs(closest - parseFloat(beat))) {
-                    //             closest = parseFloat(b);
-                    //             deltaSec = data.duration;
-                    //             delta = deltaSec * 1000.0;    
-                    //         }
-                    //     });
-                    // }
-                    // end = start + delta;
                 } else {
                     
                     // normal beats

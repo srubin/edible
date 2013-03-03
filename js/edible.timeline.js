@@ -19,7 +19,8 @@
             _dirtyWaveforms: [],
             pxPerMs: .05,
             sound: undefined,
-            position: 0.0
+            position: 0.0,
+            clickMode: "marker"
         },
         
         _create: function () {
@@ -116,19 +117,27 @@
                             }
                         }
                     }
-                }).unbind('click.edibletimeline')
-                .bind('click.edibletimeline', function (event) {
-                    var res = $(this).wf("slice", event);
-                    console.log("POS OF NEW WF", wf.pos + res.pos);
-                    console.log("POS OF OLD WF", wf.pos);
-                    that.addWaveform({
-                        elt: res.waveform,
-                        track: wf.track,
-                        pos: wf.pos + res.pos
-                    });
-                    console.log("POS OF OLD WF", wf.pos);
                 });
             });
+            
+            $.each(this.options.wf, function (i, wf) {
+                $(wf.elt).unbind('click.edibletimeline');
+                
+                if (that.options.clickMode === "split") {
+                    $(wf.elt).bind('click.edibletimeline', function (event) {
+                        var res = $(this).wf("slice", event);
+                        console.log("POS OF NEW WF", wf.pos + res.pos);
+                        console.log("POS OF OLD WF", wf.pos);
+                        that.addWaveform({
+                            elt: res.waveform,
+                            track: wf.track,
+                            pos: wf.pos + res.pos
+                        });
+                        console.log("POS OF OLD WF", wf.pos);
+                    });
+                }
+            });
+            
             this.options._dirtyWaveforms = [];
             this.element.width(this.options.width);
             
