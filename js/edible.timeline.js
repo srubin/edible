@@ -90,10 +90,16 @@
             $.each(this.options._dirtyWaveforms, function (i, wf) {
                 that.element.find(".track:eq(" + wf.track + ")")
                     .append(wf.elt);
-                $(wf.elt).css("left", that.msToPx(wf.pos))
-                    .draggable({
+                $(wf.elt).css("left", that.msToPx(wf.pos));
+                
+                // pin this waveform if necessary
+                if (!$(wf.elt).wf("option", "fixed")) {
+                    $(wf.elt).draggable({
                         containment: ".edible-timeline"
-                }).wf({
+                    });
+                };
+                
+                $(wf.elt).wf({
                     pxPerMs: that.options.pxPerMs,
                     changed: function (event, args) {
                         // only invoke this function if we didn't just add the

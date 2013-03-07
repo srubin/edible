@@ -24,7 +24,9 @@
             start: 0.0,        // milliseconds
             pxPerMs: .1,
             name: "audio",
-            filename: "audio.mp3"
+            filename: "audio.mp3",
+            innerColor: undefined,
+            fixed: false
         },
         
         // public
@@ -132,23 +134,27 @@
                 });
             
             // TODO: don't hardcode the snap tolerance
-            this.element.draggable({
-                handle: $topBar,
-                snap2: ".track",
-                snap2Mode: "inner",
-                snap2Tolerance: 46,
-                snap2Sides: "tb",
-                stack: ".edible-waveform"
-            }).resizable({
-                handles: "e, w",
-                stop: function (event, ui) {
-                    var newOpts = that._computePosFromResize(event, ui);
-                    console.log("setting new len", newOpts.len,
-                        "and start", newOpts.start);
-                    that._setOptions(newOpts);                    
-                },
-                helper: "resizable-helper"
-            }).disableSelection().css("position", "absolute");
+            if (!this.options.fixed) {
+                this.element.draggable({
+                    handle: $topBar,
+                    snap2: ".track",
+                    snap2Mode: "inner",
+                    snap2Tolerance: 46,
+                    snap2Sides: "tb",
+                    stack: ".edible-waveform"
+                }).resizable({
+                    handles: "e, w",
+                    stop: function (event, ui) {
+                        var newOpts = that._computePosFromResize(event, ui);
+                        console.log("setting new len", newOpts.len,
+                            "and start", newOpts.start);
+                        that._setOptions(newOpts);                    
+                    },
+                    helper: "resizable-helper"
+                })
+            }
+            
+            this.element.disableSelection().css("position", "absolute");
             
             this.options._mcanv = new EDIBLE.modules.MultiCanvas($canv[0]);
             
@@ -167,18 +173,23 @@
             // var canv = this.element.find('.displayCanvas')[0];
             var canv = this.options._mcanv;
             
-            var gradient = "#4BF2A7";
-            if (canv !== undefined) {
-                gradient = canv.getContext('2d')
-                    .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight));
-                gradient.addColorStop(0.0, "#4BF2A7" );
-                gradient.addColorStop(1.0, "#32CD32" );
+            var innerColor = "#4BF2A7";
+            if (this.options.innerColor !== undefined && canv !== undefined) {
+                innerColor = this.options.innerColor(canv);
+            } else if (innerColor === undefined) {
+                innerColor = "#4BF2A7";
+                if (canv !== undefined) {
+                    innerColor = canv.getContext('2d')
+                        .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight));
+                    innerColor.addColorStop(0.0, "#4BF2A7" );
+                    innerColor.addColorStop(1.0, "#32CD32" );
+                }
             }
 
             var wf = new Waveform({
                 canvas: canv,
                 data: this.options.data.slice(startSample, endSample),
-                innerColor: gradient,
+                innerColor: innerColor,
                 outerColor: "#333",
                 height: this.options.canvHeight,
                 interpolate: true,
