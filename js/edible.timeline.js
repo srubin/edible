@@ -20,7 +20,7 @@
             pxPerMs: .05,
             sound: undefined,
             position: 0.0,
-            clickMode: "marker"
+            clickMode: "volume"
         },
         
         _create: function () {
@@ -141,7 +141,12 @@
                         });
                         console.log("POS OF OLD WF", wf.pos);
                     });
+                } else if (that.options.clickMode === "volume") {
+                    $(wf.elt).bind('click.edibletimeline', function (event) {
+                       $(this).wf("addVolumeMarker", event); 
+                    });
                 }
+                
             });
             
             this.options._dirtyWaveforms = [];

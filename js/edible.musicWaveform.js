@@ -430,6 +430,123 @@
                 interpolate: true,
                 width: this.width()
             });
+            
+            // set up cached canvas
+            if (this.options._tmpCanv !== undefined) {
+                this.options._tmpCanv.destroy();
+            }
+            var tmpCanv = document.createElement('canvas');
+            $(tmpCanv).appendTo("body");
+            this.options._tmpCanv = new EDIBLE.modules.MultiCanvas(tmpCanv);
+            this.options._tmpCanv.clone(canv);
+            this.options._tmpCanv.canvases.forEach(function (canv) {
+                $(canv).css("display", "none");
+            });
+            
+            setTimeout($.proxy(this._drawVolume, this), 0)
+        },
+        
+        addVolumeMarker: function (event) {
+            var offset = this.element.offset(); 
+            var relX = event.pageX - offset.left;
+            var relY = event.pageY - offset.top - this.options.topBarHeight;
+            var msOfClick = relX / this.options.pxPerMs;
+            
+            // var beatIndex = this._msToBeat(msOfClick);
+            // var sliceTime = this.options._beatToTime[beatIndex];
+            
+            var mainctx = this.options._mcanv.getContext('2d');
+            
+            var vy = function (y) {
+                return 2.0 - (2.0 * y) / mainctx.canvas.height;
+            };
+            
+            var i;
+            var vx = this.options.volume.x;
+            for (i = 0; i < vx.length; i++) {
+                if (vx[i] > msOfClick) {
+                    vx.splice(i, 0, msOfClick);
+                    this.options.volume.y.splice(i, 0, vy(relY));
+                    break;
+                }
+            }
+            if (i === vx.length) {
+                vx.push(msOfClick);
+                this.options.volume.y.push(vy(relY));
+            }
+            this._drawVolume();
+        },
+        
+        _drawVolume: function () {
+            this.element.find('.volumeHandle').remove();
+            this.options._mcanv.clone(this.options._tmpCanv);
+            var mainctx = this.options._mcanv.getContext('2d');
+
+            // mainctx.save();
+            mainctx.strokeStyle = "yellow";
+            mainctx.lineWidth = 3;
+            mainctx.beginPath();
+
+            var vx = this.options.volume.x.slice(0);
+            var vy = this.options.volume.y.slice(0);
+            var pxPerMs = this.options.pxPerMs;
+            
+            vx.splice(0, 0, 0);
+            vx.push((mainctx.canvas.width - 1) / pxPerMs);
+            
+            vy.splice(0, 0, vy[0]);
+            vy.push(vy[vy.length - 1]);
+            
+            var y = function (vy) {
+                return mainctx.canvas.height -
+                    (mainctx.canvas.height * vy / 2.0)
+            };
+            
+            var x = function (vx) {
+                return vx * pxPerMs;
+            };
+            
+            var newx = vx.map(x);
+            var newy = vy.map(y);
+            
+            console.log("move to", x(vx[0]), y(vy[0]));
+            mainctx.moveTo(x(vx[0]), y(vy[0]));
+            
+            var cdf = new MonotonicCubicSpline(newx, newy);
+            
+            var jump = 3;
+            var i;
+            for (i = 0; i < mainctx.canvas.width; i += jump) {
+                mainctx.lineTo(i, cdf.interpolate(i))
+            }
+            mainctx.stroke();
+            
+            // create handles
+            var h;
+            vx = this.options.volume.x;
+            vy = this.options.volume.y;
+            for (i = 0; i < vx.length; i++) {
+                h = document.createElement('div');
+                $(h).addClass("volumeHandle")
+                    .css({
+                        left: x(vx[i]) - 4,
+                        top: y(vy[i]) + this.options.topBarHeight - 4
+                    })
+                    .bind('mousedown', {vx: vx, vy: vy, i: i}, function (e) {
+                        var vx = e.data.vx;
+                        var vy = e.data.vy;
+                        var i = e.data.i;
+                        e.stop();
+                        
+                        var move = function (e) {
+                            e.stop();
+                            
+                        };
+                        e.preventDefault();
+                    })
+                    .appendTo(this.element);
+            }
+            
         },
 
         _createGraph: function() {

@@ -18,7 +18,7 @@
             data: [],
             height: "90px",
             canvHeight: "75px",
-            topBarHeight: "15px",
+            topBarHeight: 15,
             dur: 1000.0,       // millseconds, doesn't change
             len: 1000.0,       // milliseconds, visible length from start
             start: 0.0,        // milliseconds
@@ -26,7 +26,11 @@
             name: "audio",
             filename: "audio.mp3",
             innerColor: undefined,
-            fixed: false
+            fixed: false,
+            volume: {
+                x: [0],
+                y: [1]
+            }
         },
         
         // public

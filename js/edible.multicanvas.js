@@ -38,6 +38,21 @@ EDIBLE.modules.MultiContext = (function () {
         if (this._fillStyle !== undefined) {
             this.fillStyle = this._fillStyle;            
         }
+        if (this._strokeStyle !== undefined) {
+            this.strokeStyle = this._strokeStyle;
+        }
+        if (this._lineWidth !== undefined) {
+            this.lineWidth = this._lineWidth;
+        }
+        
+        this._position = {
+            ctx: this.contexts[0],
+            x: 0,
+            y: 0,
+            gx: 0,
+            gy: 0
+        }
+        
     };
     
     var pointInContext = function (x, y, c_i) {
@@ -109,7 +124,7 @@ EDIBLE.modules.MultiContext = (function () {
     var universalFunc = function (funcName) {
         return function () {
             this.contexts.forEach(function (ctx) {
-                ctx[funcName];
+                ctx[funcName]();
             })
         };
     };
@@ -122,6 +137,13 @@ EDIBLE.modules.MultiContext = (function () {
         this._updateContexts = updateContexts.bind(this);
         this._pointInContext = pointInContext.bind(this);
         this._updateContexts();
+        this._position = {
+            ctx: this.contexts[0],
+            x: 0,
+            y: 0,
+            gx: 0,
+            gy: 0
+        }
     };
     
     // public API -- prototype
@@ -147,7 +169,7 @@ EDIBLE.modules.MultiContext = (function () {
         }
     }
     
-    var universals = ["save", "restore"];
+    var universals = ["save", "restore", "closePath", "beginPath", "stroke"];
     
     universals.forEach(function (univ) {
         MultiContext.prototype[univ] = universalFunc(univ);
@@ -158,6 +180,112 @@ EDIBLE.modules.MultiContext = (function () {
     rectFuncs.forEach(function (rf) {
         MultiContext.prototype[rf] = rectFuncFactory(rf);
     });
+    
+    var moveTo = function (x, y) {
+        var i;
+        for (i = 0; i < this.contexts.length; i++) {
+            pt = this._pointInContext(x, y, i);
+            if (pt !== undefined) {
+                this._position = {
+                    ctx: this.contexts[i],
+                    x: pt,
+                    y: y,
+                    gx: x,
+                    gy: y
+                };
+                this.contexts[i].moveTo(pt, y);
+            }
+        }
+    };
+    
+    var lineTo = function (x, y) {
+        var i;
+        var ctx;
+        var offset = 0;
+        for (i = 0; i < this.contexts.length; i++) {
+            ctx = this.contexts[i]
+            pt = this._pointInContext(x, y, i);
+            if (pt !== undefined && ctx === this._position.ctx) {
+                ctx.lineTo(pt, y);
+                this._position = {
+                    ctx: ctx,
+                    x: pt,
+                    y: y,
+                    gx: x,
+                    gy: y
+                };
+                break;
+            }
+            
+            if (pt !== undefined && x < this._position.gx) {
+                // line to the left
+                m = (y - this._position.gy) / parseFloat(x - this._position.gx);
+                var f = function (_x) { return m * (_x - x) + y };
+                
+                var newPos = {
+                    ctx: ctx,
+                    x: pt,
+                    y: y,
+                    gx: x,
+                    gy: y
+                };
+                
+                while (i < this.contexts.indexOf(this._position.ctx)) {
+                    newY = f(offset + this.canvas.canvases[i].width);
+                    ctx.moveTo(this.canvas.canvases[i].width, newY);
+                    ctx.lineTo(pt, y);
+                    pt = 0;
+                    y = newY;
+                    offset += this.canvas.canvases[i].width;
+                    i += 1;
+                    ctx = this.contexts[i];
+                }
+                
+                this._position.ctx.lineTo(pt, y);
+                
+                this._position = newPos;
+                break;
+            }
+            
+            if (pt !== undefined && x > this._position.gx) {
+                // line to the right
+                console.log("line to the right");
+                m = (y - this._position.gy) / parseFloat(x - this._position.gx);
+                console.log("slope", m);
+                var f = function (_x) { return m * (_x - x) + y };
+                
+                var newPos = {
+                    ctx: ctx,
+                    x: pt,
+                    y: y,
+                    gx: x,
+                    gy: y
+                };
+                
+                while (i > this.contexts.indexOf(this._position.ctx)) {
+                    newY = f(offset);
+                    console.log("ctx", i, "moveto", 0, newY, "lineto", pt, y);
+                    ctx.moveTo(0, newY);
+                    ctx.lineTo(pt, y);
+                    pt = this.canvas.canvases[i - 1].width;
+                    y = newY;
+                    offset -= this.canvas.canvases[i - 1].width;
+                    i -= 1;
+                    ctx = this.contexts[i];
+                }
+                
+                this._position.ctx.lineTo(pt, y);
+                
+                this._position = newPos;
+                break;
+            }
+            
+            offset += this.canvas.canvases[i].width;
+        }
+    };
+    
+    MultiContext.prototype.moveTo = moveTo;
+    MultiContext.prototype.lineTo = lineTo;
     
     var props = ["fillStyle", "font", "globalAlpha", "globalCompositeOperation", 
                  "lineCap", "lineDashOffset", "lineJoin", "lineWidth",
@@ -190,6 +318,27 @@ EDIBLE.modules.MultiCanvas = (function () {
     MultiCanvas.prototype = {
         constructor: EDIBLE.modules.MultiCanvas,
         version: '0.1',
+        
+        clone: function (mc) {
+            this.width = mc.width;
+            this.height = mc.height;
+            var i;
+            var ctx;
+            for (i = 0; i < mc.canvases.length; i++) {
+                // copy each canvas
+                ctx = this.canvases[i].getContext('2d');
+                ctx.drawImage(mc.canvases[0], 0, 0,
+                    mc.canvases[0].width, mc.canvases[0].height)
+            }
+        },
+        
+        destroy: function () {
+            var i;
+            var parent = this.canvases[0].parentNode;
+            for (i = 0; i < this.canvases.length; i++) {
+                parent.removeChild(this.canvases[i]);
+            }
+        },
         
         getContext: function (val) {
             if (val === '2d') {
