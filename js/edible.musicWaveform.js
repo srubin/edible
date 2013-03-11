@@ -6,6 +6,9 @@
 ;(function ($, window, document, undefined) {
     "use strict";
     $.widget("edible.musicWaveform", $.edible.waveform, {
+        
+        MAX_VOL: 1.5,
+        
         _create: function () {
             this.options._graph = this._createGraph();
             if (this.options.currentBeats === undefined) {
@@ -227,10 +230,25 @@
         },
         
         exportExtras: function () {
+            var mainctx = this.options._mcanv.getContext('2d');
+            var vx = this.options.volume.x.slice(0);
+            var vy = this.options.volume.y.slice(0);
+            var pxPerMs = this.options.pxPerMs;
+            
+            vx.splice(0, 0, 0);
+            vx.push((mainctx.canvas.width - 1) / pxPerMs);
+            
+            vy.splice(0, 0, vy[0]);
+            vy.push(vy[vy.length - 1]);
+
             return {
                 starts: this.options._exportStarts,
                 durations: this.options._exportDurations,
-                distances: this.options._exportDistances
+                distances: this.options._exportDistances,
+                volume: {
+                    x: vx,
+                    y: vy
+                }
             };
         },
         
@@ -443,7 +461,9 @@
                 $(canv).css("display", "none");
             });
             
-            setTimeout($.proxy(this._drawVolume, this), 0)
+            setTimeout(function () {
+                that._drawVolume(true);
+            }, 0);
         },
         
         addVolumeMarker: function (event) {
@@ -456,9 +476,10 @@
             // var sliceTime = this.options._beatToTime[beatIndex];
             
             var mainctx = this.options._mcanv.getContext('2d');
-            
+            var self = this;
             var vy = function (y) {
-                return 2.0 - (2.0 * y) / mainctx.canvas.height;
+                return self.MAX_VOL -
+                    (self.MAX_VOL * y) / mainctx.canvas.height;
             };
             
             var i;
@@ -474,11 +495,11 @@
                 vx.push(msOfClick);
                 this.options.volume.y.push(vy(relY));
             }
-            this._drawVolume();
+            this._drawVolume(true);
         },
         
-        _drawVolume: function () {
-            this.element.find('.volumeHandle').remove();
+        _drawVolume: function (handles) {
+            var self = this;
             this.options._mcanv.clone(this.options._tmpCanv);
             var mainctx = this.options._mcanv.getContext('2d');
 
@@ -491,6 +512,20 @@
             var vy = this.options.volume.y.slice(0);
             var pxPerMs = this.options.pxPerMs;
             
+            var i;
+            var msLen = (mainctx.canvas.width - 1) / pxPerMs;
+            var prune = false;
+            for (i = 0; i < vx.length; i++) {
+                if (vx[i] >= msLen) {
+                    prune = true;
+                    break;
+                }
+            }
+            if (prune) {
+                this.options.volume.x = vx.slice(0, i);
+                this.options.volume.y = vy.slice(0, i);
+            }
+            
             vx.splice(0, 0, 0);
             vx.push((mainctx.canvas.width - 1) / pxPerMs);
             
@@ -499,7 +534,7 @@
             
             var y = function (vy) {
                 return mainctx.canvas.height -
-                    (mainctx.canvas.height * vy / 2.0)
+                    (mainctx.canvas.height * vy / self.MAX_VOL)
             };
             
             var x = function (vx) {
@@ -509,7 +544,6 @@
             var newx = vx.map(x);
             var newy = vy.map(y);
             
-            console.log("move to", x(vx[0]), y(vy[0]));
             mainctx.moveTo(x(vx[0]), y(vy[0]));
             
             var cdf = new MonotonicCubicSpline(newx, newy);
@@ -517,36 +551,70 @@
             var jump = 3;
             var i;
             for (i = 0; i < mainctx.canvas.width; i += jump) {
-                mainctx.lineTo(i, cdf.interpolate(i))
+                mainctx.lineTo(i, cdf.interpolate(i));
             }
             mainctx.stroke();
             
-            // create handles
-            var h;
-            vx = this.options.volume.x;
-            vy = this.options.volume.y;
-            for (i = 0; i < vx.length; i++) {
-                h = document.createElement('div');
-                $(h).addClass("volumeHandle")
-                    .css({
-                        left: x(vx[i]) - 4,
-                        top: y(vy[i]) + this.options.topBarHeight - 4
-                    })
-                    .bind('mousedown', {vx: vx, vy: vy, i: i}, function (e) {
-                        var vx = e.data.vx;
-                        var vy = e.data.vy;
-                        var i = e.data.i;
-                        e.stop();
-                        
-                        var move = function (e) {
-                            e.stop();
-                            
-                        };
-                        e.preventDefault();
-                    })
-                    .appendTo(this.element);
+            if (handles !== undefined && handles) {
+                // destroy old handles
+                $(this.element).find('.volumeHandle').remove();
+                
+                var updateVolume = function (event, ui) {
+                    // update the volume position
+                    var left = ui.position.left + 4;
+                    var top = ui.position.top + 4
+                         - self.options.topBarHeight;
+                    var msPos = left / self.options.pxPerMs;
+                    var mainctx = self.options._mcanv.getContext('2d');
+                    var vy = function (y) {
+                        return self.MAX_VOL -
+                            (self.MAX_VOL * y) / mainctx.canvas.height;
+                    };
+                    
+                    var i = ui.helper.data("i");
+                    
+                    var validPos = true;
+                    if (i > 0 && self.options.volume.x[i - 1] >= msPos) {
+                        validPos = false;
+                    }
+                    if (i < self.options.volume.x.length - 1 &&
+                        self.options.volume.x[i + 1] <= msPos) {
+                        validPos = false;
+                    }
+                    if (validPos) {
+                        self.options.volume.x[i] = msPos;
+                        self.options.volume.y[i] = vy(top);
+                    }
+                };
+                
+                // create handles
+                var h;
+                vx = this.options.volume.x;
+                vy = this.options.volume.y;
+                for (i = 0; i < vx.length; i++) {
+                    h = document.createElement('div');
+                    $(h).addClass("volumeHandle")
+                        .data("vx", vx[i])
+                        .data("vy", vy[i])
+                        .data("i", i)
+                        .css({
+                            left: x(vx[i]) - 4,
+                            top: y(vy[i]) + this.options.topBarHeight - 4
+                        })
+                        .appendTo(this.element)
+                        .draggable({
+                            containment: $(this.element),
+                            drag: function (event, ui) {
+                                updateVolume(event, ui);
+                                self._drawVolume(false);
+                            },
+                            stop: function (event, ui) {
+                                updateVolume(event, ui);
+                                self._drawVolume(true);
+                            }
+                        });
+                }
             }
-            
         },
 
         _createGraph: function() {
