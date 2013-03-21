@@ -70,9 +70,6 @@
             // console.log("CANVAS", canv);
 
             var canv = this.options._mcanv;
-            console.log("CANVAS", canv, "ctx", canv.getContext('2d'))
-            
-
             
             // lame width update
             // $(canv).attr("width", this.width());
@@ -89,16 +86,39 @@
                 gradient.addColorStop(1.0, "#32CD32" );
             }
             
-            console.log("GRADIENT", gradient)
-            
             if (!hasData) {
                 currentSamples = [];
+            }
+            
+            var selectedGradient = "#FF7F24";
+            if (canv !== undefined) {
+                selectedGradient = canv.getContext('2d')
+                    .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight));
+                selectedGradient.addColorStop(0.0, "#FF7F24");
+                selectedGradient.addColorStop(1.0, "#FA9A50");
+            }
+            
+
+            var colorFunc = gradient;
+            
+            if ("highlightedWordsRange" in this.options &&
+                this.options.highlightedWordsRange !== undefined) {
+                var hwRange = this.options.highlightedWordsRange;
+                var pxPerMs = this.options.pxPerMs;
+                colorFunc = function (x, y) {
+                    var pxX = x * that.width();
+                    if (pxX >= wordPositions[hwRange[0]] * pxPerMs &&
+                        pxX < wordPositions[hwRange[1]] * pxPerMs) {
+                        return selectedGradient;
+                    }
+                    return gradient;
+                };
             }
             
             var wf = new Waveform({
                 canvas: canv,
                 data: currentSamples,
-                innerColor: gradient,
+                innerColor: colorFunc,
                 outerColor: "#333333",
                 height: this.options.canvHeight,
                 interpolate: true,
@@ -127,8 +147,6 @@
                     }
                 });
                 ctx.restore();
-            
-                console.log("canvas size", this.width());
             }
         },
         

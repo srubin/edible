@@ -226,13 +226,16 @@
             // _super and _superApply handle keeping the right this-context
             this._superApply(arguments);
             this._refresh();
-            console.log("triggering changed");
             this._trigger("changed", null, arguments);
         },
         
         _setOption: function (key, value) {
             // console.log("in _setOption with key:", key, "value:", value);
             switch (key) {
+            case "currentWords":
+                this.options.highlightedWordsRange = undefined;
+                this.options.currentWords = value;
+                break;
             case "oogielove":
                 break;
             default:

@@ -105,8 +105,8 @@
                         // only invoke this function if we didn't just add the
                         // changed callback
                         if (args[0].changed === undefined) {
-                            console.log("CHANGING POS FROM", wf.pos, 
-                                "TO", that.pxToMs($(wf.elt).position().left));
+                            // console.log("CHANGING POS FROM", wf.pos, 
+                            //   "TO", that.pxToMs($(wf.elt).position().left));
                             // TODO: figure out why this was here in 
                             // the first place. Maybe it was 
                             // because of stretching tracks?
