@@ -169,7 +169,7 @@ EDIBLE.modules.MultiContext = (function () {
         }
     }
     
-    var universals = ["save", "restore", "closePath", "beginPath", "stroke"];
+    var universals = ["save", "restore", "closePath", "beginPath", "stroke", "fill"];
     
     universals.forEach(function (univ) {
         MultiContext.prototype[univ] = universalFunc(univ);

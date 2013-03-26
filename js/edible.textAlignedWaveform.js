@@ -101,6 +101,7 @@
 
             var colorFunc = gradient;
             
+            // highlight words
             if ("highlightedWordsRange" in this.options &&
                 this.options.highlightedWordsRange !== undefined) {
                 var hwRange = this.options.highlightedWordsRange;
@@ -125,6 +126,54 @@
                 width: this.width()
             });
             
+            var drawMarker = function (x, y, ctx) {
+                ctx.save();
+                ctx.fillStyle = "red";
+                ctx.strokeStyle = "#cccccc";
+                ctx.beginPath();
+                ctx.moveTo(x - 5, y - 15);
+                ctx.lineTo(x - 5, y - 5);
+                ctx.lineTo(x, y);
+                ctx.lineTo(x + 5, y - 5);
+                ctx.lineTo(x + 5, y - 15);
+                ctx.lineTo(x - 5, y - 15);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            };
+
+            var hitBox = function (x, y, width, height) {
+                var ePtBox = document.createElement('div');
+                return $(ePtBox)
+                    .addClass('emphasisPointBox')
+                    .width(width)
+                    .height(height)
+                    .css({
+                        "left": x,
+                        "top": y
+                    })
+                    .appendTo(that.element);
+            };
+
+            // render emphasis points on the waveform
+            $(this.element).find('.emphasisPointBox').remove();
+            $.each(this.options.currentWords, function (j, word) {
+                if (word.hasOwnProperty('emphasisPoint') &&
+                    word.emphasisPoint) {
+                    // label the emphasis point at the end of the word
+                    var x = wordPositions[j + 1] * that.options.pxPerMs;
+                    var y = 20;
+                    drawMarker(x, y, canv.getContext('2d'));
+                    var hb = hitBox(x - 5, y, 10, 15);
+                    hb.data("wordIndex", j);
+
+                    hb.click(function () {
+                        // create musical underlay
+                        that.options.emphasisPointFunc($(this).data("wordIndex"));
+                    });
+                }
+            });
+
             // render text on waveform
             // don't do it for now... need to figure out problem
             // with canvas width limitations

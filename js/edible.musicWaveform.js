@@ -10,6 +10,10 @@
         MAX_VOL: 1.5,
         
         _create: function () {
+            var cbi;
+            var cb;
+            var i;
+
             this.options._graph = this._createGraph();
             if (this.options.currentBeats === undefined) {
                 this.options.currentBeats = this.options._graph.nodes().slice(0)
@@ -18,6 +22,21 @@
                     })
                 this.options._beatOrder = this.options.currentBeats.slice(0);
                 console.log(this.options.currentBeats);
+
+                if (this.options.start !== 0.0 ||
+                    this.options.dur !== this.options.len) {
+                    cb = this.options.currentBeats.slice(0);
+                    this.options.currentBeats = [];
+                    for (i = 0; i < cb.length; i++) {
+                        cbi = parseFloat(cb[i]) * 1000.0;
+                        if (cbi >= this.options.start &&
+                            cbi < this.options.start + this.options.len) {
+                            this.options.currentBeats.push(cb[i]);
+                        }
+                    }
+                    this.options.start =
+                        parseFloat(this.options.currentBeats[0]) * 1000.0;
+                }
             }
             
             // the super...

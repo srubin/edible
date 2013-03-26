@@ -40,6 +40,8 @@
         
         waveformClass: function () { return "waveform" },
         
+        addVolumeMarker: function () { return; },
+
         exportExtras: function () {
             return {};
         },
