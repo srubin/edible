@@ -413,7 +413,7 @@
                     // (where the next beat is also in the currentBeats)
                     
                     start = parseFloat(beat) * 1000.0;
-                    console.log(beat, graph.succ[beat], currentBeats[j + 1], j + 1);
+
                     if (graph.succ[beat].hasOwnProperty(currentBeats[j + 1])) {
                         // transition to next beat is in the graph
                         deltaSec = graph.succ[beat][currentBeats[j + 1]].duration;
