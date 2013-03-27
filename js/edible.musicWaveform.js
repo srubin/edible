@@ -15,12 +15,14 @@
             var i;
 
             this.options._graph = this._createGraph();
-            if (this.options.currentBeats === undefined) {
-                this.options.currentBeats = this.options._graph.nodes().slice(0)
+            var allBeats = this.options._graph.nodes().slice(0)
                     .sort(function (a, b){
                         return parseFloat(a) - parseFloat(b);
-                    })
-                this.options._beatOrder = this.options.currentBeats.slice(0);
+                    });
+            this.options._beatOrder = allBeats.slice(0);
+
+            if (this.options.currentBeats === undefined) {
+                this.options.currentBeats = allBeats;
                 console.log(this.options.currentBeats);
 
                 if (this.options.start !== 0.0 ||
@@ -37,6 +39,9 @@
                     this.options.start =
                         parseFloat(this.options.currentBeats[0]) * 1000.0;
                 }
+            } else {
+                this.options.start =
+                    parseFloat(this.options.currentBeats[0]) * 1000.0;
             }
             
             // the super...
@@ -408,10 +413,21 @@
                     // (where the next beat is also in the currentBeats)
                     
                     start = parseFloat(beat) * 1000.0;
-                    deltaSec = graph.succ[beat][currentBeats[j + 1]].duration;
+                    console.log(beat, graph.succ[beat], currentBeats[j + 1], j + 1);
+                    if (graph.succ[beat].hasOwnProperty(currentBeats[j + 1])) {
+                        // transition to next beat is in the graph
+                        deltaSec = graph.succ[beat][currentBeats[j + 1]].duration;
+                        dist = graph.succ[beat][currentBeats[j + 1]].distance;
+                    } else {
+                        // transition to next beat isn't in our graph!
+                        // this can happen when we manually specify a beat order
+                        var firstKey = Object.keys(graph.succ[beat])[0];
+                        deltaSec = graph.succ[beat][firstKey].duration;
+                        dist = 1; // just has to not be zero...
+                    }
+
                     delta = deltaSec * 1000.0;
                     end = start + delta;
-                    dist = graph.succ[beat][currentBeats[j + 1]].distance;
                 }
                 
                 
