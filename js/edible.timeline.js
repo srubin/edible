@@ -20,15 +20,17 @@
             pxPerMs: .05,
             sound: undefined,
             position: 0.0,
-            clickMode: "volume"
+            clickMode: "volume",
+            linkGroups: [],
         },
         
         _create: function () {
-            console.log("in timeline _create");
             var that = this;
+            console.log("in timeline _create");
+            
             var trackTemplate = $("#trackTemplate").html();
             var i;
-            this.element.addClass("edible-timeline")
+            this.element.addClass("edible-timeline");
             for (i = 0; i < this.options.tracks; i++) {
                 this.element.append(_.template(trackTemplate));
             }
@@ -47,13 +49,32 @@
                         // update pos for the dropped waveform
                         $.each(that.options.wf, function (i, wf) {
                             if (wf.elt === $kid[0]) {
+                                var oldpos = wf.pos;
                                 wf.pos = that.pxToMs($kid.position().left);
+                                var deltapos = wf.pos - oldpos;
+                                var deltapx = that.msToPx(deltapos);
                                 $.each(that.element.find('.track'), function (i, track) {
                                     if ($dad[0] === track) {
                                         wf.track = i;
                                         return false;
                                     }
                                 });
+                                // TOO MUCH NESTING. NO TIME TO CLEAN :-(
+                                // update link group wfs too (in any)
+                                $.each(that.options.linkGroups, function (j, lg) {
+                                    if (lg.indexOf(wf.elt) !== -1) {
+                                        $.each(that.options.wf, function(k, wf2) {
+                                            if (wf2.elt !== wf.elt &&
+                                                lg.indexOf(wf2.elt) !== -1) {
+                                                wf2.pos += deltapos;
+                                                $(wf2.elt)
+                                                .css("left", "+=" + deltapx + "px");
+                                            }
+                                        });
+                                        return false;
+                                    } 
+                                })
+
                                 return;
                             }
                         });
@@ -181,18 +202,22 @@
 
         export: function () {
             var that = this;
-            return $.map(this.options.wf, function (wf) {
+            var exportOpts = [];
+            $.each(this.options.wf, function (i, wf) {
                 console.log("SCORE START", wf.pos / 1000.0, "WF POS", wf.pos);
-                return {
-                    waveformClass: $(wf.elt).wf("waveformClass"),
-                    extra: $(wf.elt).wf("exportExtras"),
-                    filename: $(wf.elt).wf("option", "filename"),
-                    name: $(wf.elt).wf("option", "name"),
-                    scoreStart: wf.pos / 1000.0,
-                    wfStart: $(wf.elt).wf("option", "start") / 1000.0,
-                    duration: $(wf.elt).wf("option", "len") / 1000.0
-                };
+                if (!$(wf.elt).wf("option", "mute")) {
+                    exportOpts.push({
+                        waveformClass: $(wf.elt).wf("waveformClass"),
+                        extra: $(wf.elt).wf("exportExtras"),
+                        filename: $(wf.elt).wf("option", "filename"),
+                        name: $(wf.elt).wf("option", "name"),
+                        scoreStart: wf.pos / 1000.0,
+                        wfStart: $(wf.elt).wf("option", "start") / 1000.0,
+                        duration: $(wf.elt).wf("option", "len") / 1000.0
+                    });
+                }
             });
+            return exportOpts;
         },
 
         _setOptions: function () {

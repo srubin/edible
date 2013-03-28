@@ -106,10 +106,16 @@
                 this.options.highlightedWordsRange !== undefined) {
                 var hwRange = this.options.highlightedWordsRange;
                 var pxPerMs = this.options.pxPerMs;
+                var hwStart = wordPositions[hwRange[0]] * pxPerMs;
+                var hwStop;
+                if (hwRange[1] + 1 >= wordPositions.length) {
+                    hwStop = that.width();
+                } else {
+                    hwStop = wordPositions[hwRange[1] + 1] * pxPerMs;
+                }
                 colorFunc = function (x, y) {
                     var pxX = x * that.width();
-                    if (pxX >= wordPositions[hwRange[0]] * pxPerMs &&
-                        pxX < wordPositions[hwRange[1]] * pxPerMs) {
+                    if (pxX >= hwStart && pxX < hwStop) {
                         return selectedGradient;
                     }
                     return gradient;

@@ -27,6 +27,7 @@
             filename: "audio.mp3",
             innerColor: undefined,
             fixed: false,
+            mute: false,
             volume: {
                 x: [0],
                 y: [1]
