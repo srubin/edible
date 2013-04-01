@@ -82,8 +82,12 @@
             if (canv !== undefined) {
                 gradient = canv.getContext('2d')
                     .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight));
-                gradient.addColorStop(0.0, "#4BF2A7" );
-                gradient.addColorStop(1.0, "#32CD32" );
+
+                gradient.addColorStop(0.0, "#333");
+                gradient.addColorStop(1.0, "#777");
+
+                // gradient.addColorStop(0.0, "#4BF2A7" );
+                // gradient.addColorStop(1.0, "#32CD32" );
             }
             
             if (!hasData) {
@@ -126,7 +130,8 @@
                 canvas: canv,
                 data: currentSamples,
                 innerColor: colorFunc,
-                outerColor: "#333333",
+                outerColor: "#eee",
+                // outerColor: "#333333",
                 height: this.options.canvHeight,
                 interpolate: true,
                 width: this.width()

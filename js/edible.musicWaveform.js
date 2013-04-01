@@ -466,8 +466,11 @@
             if (canv !== undefined) {
                 gradient = canv.getContext('2d')
                     .createLinearGradient(0, 0, 0, parseInt(this.options.canvHeight, 10));
-                gradient.addColorStop(0.0, "#4BF2A7" );
-                gradient.addColorStop(1.0, "#32CD32" );
+                // gradient.addColorStop(0.0, "#4BF2A7" );
+                // gradient.addColorStop(1.0, "#32CD32" );
+
+                gradient.addColorStop(0.0, "#333");
+                gradient.addColorStop(1.0, "#777");
             }
             
             if (!hasData) {
@@ -478,7 +481,8 @@
                 canvas: canv,
                 data: currentSamples,
                 innerColor: gradient,
-                outerColor: "#333",
+                outerColor: "#eee",
+                // outerColor: "#333",
                 height: this.options.canvHeight,
                 interpolate: true,
                 width: this.width()
@@ -539,7 +543,7 @@
             var mainctx = this.options._mcanv.getContext('2d');
 
             // mainctx.save();
-            mainctx.strokeStyle = "yellow";
+            mainctx.strokeStyle = "#CFB52B";
             mainctx.lineWidth = 3;
             mainctx.beginPath();
 
