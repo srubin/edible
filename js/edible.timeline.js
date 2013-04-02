@@ -206,14 +206,16 @@
             $.each(this.options.wf, function (i, wf) {
                 console.log("SCORE START", wf.pos / 1000.0, "WF POS", wf.pos);
                 if (!$(wf.elt).wf("option", "mute")) {
+                    var $wf = $(wf.elt);
                     exportOpts.push({
-                        waveformClass: $(wf.elt).wf("waveformClass"),
-                        extra: $(wf.elt).wf("exportExtras"),
-                        filename: $(wf.elt).wf("option", "filename"),
-                        name: $(wf.elt).wf("option", "name"),
+                        globalVolume: $wf.wf("option", "globalVolume"),
+                        waveformClass: $wf.wf("waveformClass"),
+                        extra: $wf.wf("exportExtras"),
+                        filename: $wf.wf("option", "filename"),
+                        name: $wf.wf("option", "name"),
                         scoreStart: wf.pos / 1000.0,
-                        wfStart: $(wf.elt).wf("option", "start") / 1000.0,
-                        duration: $(wf.elt).wf("option", "len") / 1000.0
+                        wfStart: $wf.wf("option", "start") / 1000.0,
+                        duration: $wf.wf("option", "len") / 1000.0
                     });
                 }
             });

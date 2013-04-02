@@ -28,6 +28,7 @@
             innerColor: undefined,
             fixed: false,
             mute: false,
+            globalVolume: 1.0,
             volume: {
                 x: [0],
                 y: [1]
