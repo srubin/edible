@@ -254,6 +254,7 @@
         },
         
         exportExtras: function () {
+            this.options._dirty = false;
             var mainctx = this.options._mcanv.getContext('2d');
             var vx = this.options.volume.x.slice(0);
             var vy = this.options.volume.y.slice(0);
@@ -670,6 +671,7 @@
         },
         
         _setOption: function (key, value) {
+            this.options._dirty = true;
             // console.log("in _setOption with key:", key, "value:", value);
             switch (key) {
             case "musicGraph":

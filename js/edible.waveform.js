@@ -29,6 +29,7 @@
             fixed: false,
             mute: false,
             globalVolume: 1.0,
+            _dirty: true,
             volume: {
                 x: [0],
                 y: [1]
@@ -42,9 +43,14 @@
         
         waveformClass: function () { return "waveform" },
         
+        isDirty: function () {
+            return this.options._dirty;
+        },
+
         addVolumeMarker: function () { return; },
 
         exportExtras: function () {
+            this.options._dirty = false;
             return {};
         },
         
@@ -235,6 +241,7 @@
         
         _setOption: function (key, value) {
             // console.log("in _setOption with key:", key, "value:", value);
+            this.options._dirty = true;
             switch (key) {
             case "currentWords":
                 this.options.highlightedWordsRange = undefined;

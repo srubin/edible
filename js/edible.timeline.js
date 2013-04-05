@@ -22,6 +22,7 @@
             position: 0.0,
             clickMode: "volume",
             linkGroups: [],
+            _dirty: true
         },
         
         _create: function () {
@@ -202,6 +203,7 @@
 
         export: function () {
             var that = this;
+            this.options._dirty = false;
             var exportOpts = [];
             $.each(this.options.wf, function (i, wf) {
                 console.log("SCORE START", wf.pos / 1000.0, "WF POS", wf.pos);
@@ -222,6 +224,19 @@
             return exportOpts;
         },
 
+        isDirty: function () {
+            if (this.options._dirty) {
+                return true;
+            }
+            var i;
+            for (i = 0; i < this.options.wf.length; i++) {
+                if ($(wf.elt).wf("isDirty")) {
+                    return true;
+                }
+            }
+            return false;
+        },
+
         _setOptions: function () {
             // _super and _superApply handle keeping the right this-context
             this._superApply(arguments);
@@ -230,6 +245,7 @@
 
         _setOption: function (key, value) {
             // console.log("in _setOption with key:", key, "value:", value);
+            this.options._dirty = true;
             switch (key) {
             case "pxPerMs":
                 this.options._dirtyWaveforms = this.options.wf.slice(0);
