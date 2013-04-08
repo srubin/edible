@@ -174,6 +174,11 @@
                     // change waveform pos in timeline
                     var newStart = origStart - (this.options.len - origLen)
                 }
+
+                if (this.options.hasOwnProperty("loopCallback")) {
+                    this.options.loopCallback();
+                }
+
                 return;
             }
         },
